@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service as ChromeService
+import platform
 import random
 import re
 import time
@@ -21,22 +22,26 @@ class ScraperSelenium():
 
         count = 0
 
-        # Setup Chrome options
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--disable-gpu")  # This is important for some versions of Chrome
-        chrome_options.add_argument("--remote-debugging-port=9222")  # This is recommended
+        if platform.system() == "Linux":
+            # Setup Chrome options
+            chrome_options = Options()
+            chrome_options.add_argument("--headless")
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-dev-shm-usage")
+            chrome_options.add_argument("--disable-gpu")  # This is important for some versions of Chrome
+            chrome_options.add_argument("--remote-debugging-port=9222")  # This is recommended
 
-        # Set path to Chrome binary
-        chrome_options.binary_location = "/opt/chrome/chrome-linux64/chrome"
+            # Set path to Chrome binary
+            chrome_options.binary_location = "/opt/chrome/chrome-linux64/chrome"
 
-        # Set path to ChromeDriver
-        chrome_service = ChromeService(executable_path="/opt/chromedriver/chromedriver-linux64/chromedriver")
+            # Set path to ChromeDriver
+            chrome_service = ChromeService(executable_path="/opt/chromedriver/chromedriver-linux64/chromedriver")
 
-        # Set up driver
-        driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
+            # Set up driver
+            driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
+        
+        else:
+             driver = webdriver.Chrome() 
 
         try:
             driver.get(self.webpage_url)
