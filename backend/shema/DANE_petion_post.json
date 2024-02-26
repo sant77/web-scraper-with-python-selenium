@@ -1,0 +1,12 @@
+{
+    "type": "object",
+    "properties": {
+      "cufes": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "required": ["cufes"]
+  }

@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 class ScraperSelenium():
 
     def __init__(self, webpage_url:str) -> None:
+
         self.webpage_url = webpage_url
 
     def find_dane_elements(self,cufe:str):
@@ -40,7 +41,6 @@ class ScraperSelenium():
 
         return None
     
-
 if "__main__"== __name__:
 
     scraper = ScraperSelenium("https://catalogo-vpfe.dian.gov.co/User/SearchDocument")

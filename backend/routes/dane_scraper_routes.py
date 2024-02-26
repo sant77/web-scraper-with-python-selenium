@@ -1,8 +1,32 @@
-from flask import Blueprint, request
+from flask import Blueprint, jsonify, request
+from jsonschema import validate
+from src.backend.utils.webScraper import ScraperSelenium
+from src.backend.config  import PATH
+import json
+import os 
+
+shema_path = os.path.join(PATH, "shema/DANE_petion_post.json")
 
 dian_methods = Blueprint("dian_methods", __name__)
 
 @dian_methods.post("/api/v1/scrape_dian_information")
 def get_information_from_dane():
 
-    return None
+    get_json_post = request.get_json()
+
+    with open(shema_path, 'r') as schema_file:
+             schema = json.load(schema_file)
+
+    validate(instance=get_json_post, schema=schema)
+  
+    
+    list_of_cufes = get_json_post["cufes"]
+
+
+    for cufe in list_of_cufes:
+
+        scraper = ScraperSelenium("https://catalogo-vpfe.dian.gov.co/User/SearchDocument")
+
+        scraper.find_dane_elements(cufe)
+
+    return jsonify({"response":"ok"}), 200
