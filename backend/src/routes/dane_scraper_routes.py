@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from jsonschema import validate
-from backend.utils.webScraper import ScraperSelenium
-from backend.config  import PATH
+from src.utils.webScraper import ScraperSelenium
+from src.config  import PATH
 import json
 import os 
 

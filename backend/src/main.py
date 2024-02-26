@@ -1,5 +1,5 @@
 from flask import Flask
-from backend.routes.dane_scraper_routes import dian_methods
+from src.routes.dane_scraper_routes import dian_methods
 
 
 app = Flask(__name__)
