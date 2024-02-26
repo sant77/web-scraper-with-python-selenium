@@ -21,58 +21,64 @@ class ScraperSelenium():
 
         driver = webdriver.Chrome()
 
-        driver.get(self.webpage_url)
-        time.sleep(random.randint(0,2))
-
-        driver.current_url
-        # Ejemplo de movimiento del mouse
-        
-        # Find input text field
-        input_text_fname = driver.find_element(By.ID, 'DocumentKey')
-        button = driver.find_element(By.CLASS_NAME, 'btn.btn-primary.search-document.margin-top-40')
-        # Take a screenshot before entering a value
-        driver.save_screenshot("screenshot-1.png")
-
-        # Enter a value in the input text field
-        input_text_fname.send_keys(cufe)
-
-        while driver.current_url == self.webpage_url:
-
-            actions = ActionChains(driver)
-            actions.move_by_offset(random.randint(1, 10), random.randint(1, 10)).perform()
-
+        try:
+            driver.get(self.webpage_url)
             time.sleep(random.randint(0,2))
-            button.click()
 
-            if count >= self.attemps:
-                
-                return None
+            driver.current_url
+            # Ejemplo de movimiento del mouse
             
-            count = 1 + count
+            # Find input text field
+            input_text_fname = driver.find_element(By.ID, 'DocumentKey')
+            
+            # Take a screenshot before entering a value
+            driver.save_screenshot("screenshot-1.png")
 
-        # Take a screenshot after entering a value
-        #driver.save_screenshot("screenshot-2.png")
-        text = driver.find_elements(By.CLASS_NAME, 'col-md-4')
-        table = driver.find_elements(By.CLASS_NAME, "table-responsive")
-        download = driver.find_element(By.CLASS_NAME, "downloadPDFUrl")
+            # Enter a value in the input text field
+            input_text_fname.send_keys(cufe)
 
-        link = download.get_property('href')
-    
-        emisor_list = text[1].text.split(" ") 
-        receptor_list = text[2].text.split(" ")
+            while driver.current_url == self.webpage_url:
 
-        emisor_nit = re.sub(self.pattern_nit, "", emisor_list[3])
-        receptor_nit = re.sub(self.pattern_nit, "", receptor_list[3])
+                button = driver.find_element(By.CLASS_NAME, 'btn.btn-primary.search-document.margin-top-40')
+                
+                
+                time.sleep(1)
+                
+                button.click()
 
-        emisor_name = self._join_name(emisor_list[4:])
-        receptor_name = self._join_name(receptor_list[4:])
+                driver.implicitly_wait(3)
 
-        events = self._look_for_events(table[1].text.split())
+                if count >= self.attemps:
+
+                    return None
+                
+                count = 1 + count
+
+            text = driver.find_elements(By.CLASS_NAME, 'col-md-4')
+            table = driver.find_elements(By.CLASS_NAME, "table-responsive")
+            download = driver.find_element(By.CLASS_NAME, "downloadPDFUrl")
+
+            link = download.get_property('href')
         
+            emisor_list = text[1].text.split(" ") 
+            receptor_list = text[2].text.split(" ")
 
-        driver.quit()
+            emisor_nit = re.sub(self.pattern_nit, "", emisor_list[3])
+            receptor_nit = re.sub(self.pattern_nit, "", receptor_list[3])
 
-        return link, emisor_nit, emisor_name, receptor_nit, receptor_name, events
+            emisor_name = self._join_name(emisor_list[4:])
+            receptor_name = self._join_name(receptor_list[4:])
+
+            events = self._look_for_events(table[1].text.split())
+            
+
+            driver.quit()
+
+            return link, emisor_nit, emisor_name, receptor_nit, receptor_name, events
+        
+        except Exception:
+            
+            return None
 
     def _look_for_events(self, table:list):
 

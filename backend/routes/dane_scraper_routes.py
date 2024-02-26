@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from jsonschema import validate
-from src.backend.utils.webScraper import ScraperSelenium
-from src.backend.config  import PATH
+from backend.utils.webScraper import ScraperSelenium
+from backend.config  import PATH
 import json
 import os 
 
@@ -22,11 +22,30 @@ def get_information_from_dane():
     
     list_of_cufes = get_json_post["cufes"]
 
+    response ={}
 
     for cufe in list_of_cufes:
 
         scraper = ScraperSelenium("https://catalogo-vpfe.dian.gov.co/User/SearchDocument")
 
-        scraper.find_dane_elements(cufe)
+        link, emisor_nit, emisor_name, receptor_nit, receptor_name, events = scraper.find_dane_elements(cufe)
+        
+        response.update(
+               { cufe:{
+                    "events": events,
 
-    return jsonify({"response":"ok"}), 200
+                    "sellerInformation":{
+                          "Document": emisor_nit,
+                          "Name":emisor_name
+                    },
+
+                    "receiverInformation":{
+                          "Document": receptor_nit,
+                          "Name": receptor_name
+                    },
+                    "linkGraphicRepresentation":link
+
+              } })
+
+
+    return jsonify(response), 200
