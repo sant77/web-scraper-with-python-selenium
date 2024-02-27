@@ -19,13 +19,17 @@ class ScraperSelenium():
         self.webpage_url = webpage_url
         self.pattern_nit = r'[^0-9]'
         self.date_pattern = r"\b(19\d\d|20\d\d)[-/](0[1-9]|1[0-2])[-/](0[1-9]|[12]\d|3[01])\b"
-        self.attempts = 5
+        self.attempts = 10
 
     def find_dane_elements(self,cufe:str):
 
         set_logs_configuration()
 
+        # Contador de intentos
+
         count = 0
+
+        # En caso de tranajar en docker o local se hará una configuración diferente
 
         if platform.system() == "Linux":
             # Setup Chrome options
@@ -49,11 +53,11 @@ class ScraperSelenium():
              driver = webdriver.Chrome() 
 
         try:
+            # Se accede a la pagina
             driver.get(self.webpage_url)
-            time.sleep(random.randint(0,2))
 
-            driver.current_url
-            # Ejemplo de movimiento del mouse
+            # Se simula un tiempo de espera
+            time.sleep(random.randint(0,2))
             
             # Find input text field
             input_text_fname = driver.find_element(By.ID, 'DocumentKey')
@@ -65,17 +69,20 @@ class ScraperSelenium():
             input_text_fname.send_keys(cufe)
 
             actions = ActionChains(driver)
+
+            # Se realiza varios intentos para vencer el Captcha
             while driver.current_url == self.webpage_url:
                 actions.move_by_offset(random.randint(1, 10), random.randint(1, 10)).perform()
                 button = driver.find_element(By.CLASS_NAME, 'btn.btn-primary.search-document.margin-top-40')
                 
                 
-                time.sleep(1)
+                time.sleep(abs(random.gauss(1,2)))
                 
                 button.click()
 
                 driver.implicitly_wait(3)
 
+                # Si falla retorna none
                 if count >= self.attempts:
 
                     logging.warn("the scrapper is not able to pass the first page. Incorrect cufe or impossible to bit the reCAPTCHA")
@@ -84,21 +91,27 @@ class ScraperSelenium():
                 
                 count = 1 + count
 
+            # Se obtiene los valores buscados
             text = driver.find_elements(By.CLASS_NAME, 'col-md-4')
             table = driver.find_elements(By.CLASS_NAME, "table-responsive")
             download = driver.find_element(By.CLASS_NAME, "downloadPDFUrl")
 
+            # Se toma el link de descarga del pdf
             link = download.get_property('href')
         
+            # Se convierte en una lista cada palabra capturada 
             emisor_list = text[1].text.split(" ") 
             receptor_list = text[2].text.split(" ")
 
+            # La cuarta posición se extrae solo los números
             emisor_nit = re.sub(self.pattern_nit, "", emisor_list[3])
             receptor_nit = re.sub(self.pattern_nit, "", receptor_list[3])
 
+            # A partir de la 5 se usauna función que vuelve a unir todo en un solo string
             emisor_name = self._join_name(emisor_list[4:])
             receptor_name = self._join_name(receptor_list[4:])
 
+            # Función que separa cada evento
             events = self._look_for_events(table[1].text.split())
             
 
@@ -115,6 +128,11 @@ class ScraperSelenium():
     def _look_for_events(self, table:list):
 
         events = []
+
+        # Se compone de tres estados:
+        # El primero busca el número del evento
+        # La siguiente concatena todo el texto hasta encontrar una fecha
+        # El ultimo busca la palabra detalle para saber que finalizó con el evento
 
         state0 = 1
         state1 = 0

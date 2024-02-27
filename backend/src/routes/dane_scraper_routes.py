@@ -19,14 +19,16 @@ dian_methods = Blueprint("dian_methods", __name__)
 def get_information_from_dane():
 
       try:
+            # Se obtiene el json
             get_json_post = request.get_json()
 
             with open(shema_path, 'r') as schema_file:
                         schema = json.load(schema_file)
 
+            # Se valida el formaro
             validate(instance=get_json_post, schema=schema)
             
-            
+            # Se extrae todo lso Cufes
             list_of_cufes = get_json_post["cufes"]
 
             response ={}
@@ -37,6 +39,7 @@ def get_information_from_dane():
 
                   link, emisor_nit, emisor_name, receptor_nit, receptor_name, events = scraper.find_dane_elements(cufe)
 
+                  # Si el Cufe no viene vacio es decir capturó los datos:
                   if emisor_nit != None:
 
                         data_of_cufe =  { cufe:{
@@ -56,9 +59,12 @@ def get_information_from_dane():
                               } }
                         
                         response.update(data_of_cufe)
+
+                        # Se guarda la información
                         insert_update_data(data_of_cufe)
 
                   else:
+                         # Sino se avisa que no fue exitoso la captura
                          response.update({cufe:"Unable to scrape data check out the cufe code or try again"})
 
             return jsonify(response), 200
