@@ -34,9 +34,9 @@ Para iniciar el docker compose se debe ingrasar a la carpeta `docker_compose` y 
 
 # Posibles mejoras📝
 
-- Para optimizar en velocidad se podría probar no iniciar un dirver de google por cada Cufe sin embargo para evitar posibles errores y perder el progreso de cada scraper mejor se optó por otra aproximación
+- Para optimizar en velocidad se podría probar no iniciar un dirver de google por cada Cufe, sin embargo para evitar posibles errores y perder el progreso de cada scraper mejor se optó por otra aproximación
 
-- Se necesita un método mejor para vencer el recaptcha por ahora se hace a fuerza bruta sin embargo para volumenes de datos grandes esto no es viable.
+- Se necesita un método mejor para vencer el recaptcha. Por ahora se hace a fuerza bruta, sin embargo para volumenes de datos grandes esto no es viable.
 
 # Links de interés 🔗
 - [Documentanción de Selenium](https://www.selenium.dev/documentation/)
