@@ -13,14 +13,31 @@ services:
 
     environment:
       - address_consul=http://consul:8500/
+    
+    networks:
+      - net-dane
+
+    hostname: flask_dane  
+    
+  mongo:
+    image: mongo:4.4
+    
+    ports:
+      - 27017:27017
+    volumes:
+      - ./data:/data/db
+
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: usuario_admin
+      MONGO_INITDB_ROOT_PASSWORD: contraseña_admin
+      MONGO_INITDB_DATABASE: scraper_data_dane
 
     networks:
-      - net-dane  
-    hostname: flask-app  
+      - net-dane
+
+    hostname: mongo
 
   
-
-
-            
+        
 networks:
   net-dane:

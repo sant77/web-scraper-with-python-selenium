@@ -1,51 +1,25 @@
-import mysql.connector
+from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure
 import time
-import logging
 
-# Set up logger
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-
-# Log to console
-handler = logging.StreamHandler()
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-
-# Also log to a file
-file_handler = logging.FileHandler("cpy-errors.log")
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler) 
-
-def connect_to_mysql(attempts=3, delay=2):
-
-    config = {
-    'user': 'scott',
-    'password': 'password',
-    'host': '127.0.0.1',
-    'database': 'employees',
-    'raise_on_warnings': True
-    }
-    
-    attempt = 1
-    # Implement a reconnection routine
-    while attempt < attempts + 1:
+def connection_mongo(data_base_name, intentos_maximos=3, espera_entre_intentos=5):
+    for intento in range(1, intentos_maximos + 1):
         try:
-            return mysql.connector.connect(**config)
-        
-        except (mysql.connector.Error, IOError) as err:
-            if (attempts is attempt):
-                # Attempts to reconnect failed; returning None
-                logger.info("Failed to connect, exiting without a connection: %s", err)
-                return None
-            logger.info(
-                "Connection failed: %s. Retrying (%d/%d)...",
-                err,
-                attempt,
-                attempts-1,
-            )
-            # progressive reconnect delay
-            time.sleep(delay ** attempt)
-            attempt += 1
-    return None
+            # Intenta conectar a MongoDB
+            client = MongoClient("localhost",
+                                 port=27017,
+                                 username="usuario_admin",
+                                 password="contraseña_admin")
+                                 
+            db = client[data_base_name]
 
+            return db  # Retorna la conexión exitosa
+
+        except ConnectionFailure as e:
+            print(f'Intento {intento}: Error de conexión a MongoDB - {e}')
+
+            if intento < intentos_maximos:
+                print(f'Esperando {espera_entre_intentos} segundos antes de intentar nuevamente...')
+                time.sleep(espera_entre_intentos)
+            else:
+                print(f'No se pudo establecer la conexión después de {intentos_maximos} intentos. Saliendo.')
