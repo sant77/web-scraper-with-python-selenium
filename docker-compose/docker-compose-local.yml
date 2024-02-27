@@ -12,7 +12,10 @@ services:
       - "443:443"
 
     environment:
-      - address_consul=http://consul:8500/
+      - host_mongo=mongo
+      - port_mongo=27017
+      - user_mongo=usuario_admin
+      - password_mongo=contraseña_admin
     
     networks:
       - net-dane

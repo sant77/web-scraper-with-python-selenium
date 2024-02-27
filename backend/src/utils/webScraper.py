@@ -106,7 +106,7 @@ class ScraperSelenium():
         
         except Exception as e:
 
-            logging.error(f"unexpect error {e}")
+            logging.error(f"unexpect error in Scraping {e}")
             raise(Exception)
             
 

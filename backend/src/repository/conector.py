@@ -21,7 +21,7 @@ def connection_mongo(data_base_name, max_attempts=3, delay=5):
 
             # Intenta conectar a MongoDB
             client = MongoClient(host_mongo,
-                                 port=port_mongo,
+                                 port=int(port_mongo),
                                  username=user_mongo,
                                  password=password_mongo)
                                  
@@ -37,6 +37,8 @@ def connection_mongo(data_base_name, max_attempts=3, delay=5):
                 time.sleep(delay)
             else:
                 logging.warn(f'Could not stablish connection after {max_attempts} attempts.')
+                raise(ConnectionFailure)
 
         except Exception as e:
             logging.error(f"unexpect error {e}")
+            raise(Exception)
