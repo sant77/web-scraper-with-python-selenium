@@ -1,27 +1,34 @@
 from src.repository.conector import connection_mongo
-
-
+from src.utils.logs_config import set_logs_configuration
+import logging
 
 def insert_update_data(datos):
 
+    set_logs_configuration()
+
     db = connection_mongo("scraper_data_dane")
 
-    collection = db["bill"]
+    try:
+        collection = db["bill"]
 
-    # Extraer el identificador único
-    id_unico = list(datos.keys())[0]
+        # Extraer el identificador único
+        id_unico = list(datos.keys())[0]
 
-    # Buscar si ya existe un documento con el mismo identificador único
-    existente = collection.find_one({'_id': id_unico})
+        # Buscar si ya existe un documento con el mismo identificador único
+        existente = collection.find_one({'_id': id_unico})
 
-    if existente:
-        # Si existe, actualiza el documento
-        collection.update_one({'_id': id_unico}, {'$set': datos})
-        print(f'Documento actualizado con id {id_unico}')
-    else:
-        # Si no existe, inserta un nuevo documento
-        collection.insert_one({**datos, '_id': id_unico})
-        print(f'Nuevo documento insertado con id {id_unico}')
+        if existente:
+            # Si existe, actualiza el documento
+            collection.update_one({'_id': id_unico}, {'$set': datos})
+            logging.info(f'Bill update{id_unico}')
+        else:
+            # Si no existe, inserta un nuevo documento
+            collection.insert_one({**datos, '_id': id_unico})
+            logging.info(f'New bill {id_unico}')
+
+    except Exception as e:
+
+        logging.error(f"unexpect error {e}")
     
 if "__main__" == __name__:
 

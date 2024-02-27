@@ -1,25 +1,42 @@
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
+from src.utils.logs_config import set_logs_configuration
+from dotenv import load_dotenv
 import time
+import logging
+import os
+def connection_mongo(data_base_name, max_attempts=3, delay=5):
 
-def connection_mongo(data_base_name, intentos_maximos=3, espera_entre_intentos=5):
-    for intento in range(1, intentos_maximos + 1):
+    set_logs_configuration()
+
+    for attempt in range(1, max_attempts + 1):
+
         try:
+            load_dotenv()
+            
+            host_mongo = os.environ.get("host_mongo")
+            port_mongo = os.environ.get("port_mongo")
+            user_mongo = os.environ.get("user_mongo")
+            password_mongo = os.environ.get("password_mongo")
+
             # Intenta conectar a MongoDB
-            client = MongoClient("localhost",
-                                 port=27017,
-                                 username="usuario_admin",
-                                 password="contraseña_admin")
+            client = MongoClient(host_mongo,
+                                 port=port_mongo,
+                                 username=user_mongo,
+                                 password=password_mongo)
                                  
             db = client[data_base_name]
 
             return db  # Retorna la conexión exitosa
 
         except ConnectionFailure as e:
-            print(f'Intento {intento}: Error de conexión a MongoDB - {e}')
+            logging.error(f'attempts {attempt}: error connecting to  MongoDB - {e}')
 
-            if intento < intentos_maximos:
-                print(f'Esperando {espera_entre_intentos} segundos antes de intentar nuevamente...')
-                time.sleep(espera_entre_intentos)
+            if attempt < max_attempts:
+                logging.info(f'waiting {delay} seconds before to new attempts...')
+                time.sleep(delay)
             else:
-                print(f'No se pudo establecer la conexión después de {intentos_maximos} intentos. Saliendo.')
+                logging.warn(f'Could not stablish connection after {max_attempts} attempts.')
+
+        except Exception as e:
+            logging.error(f"unexpect error {e}")

@@ -3,6 +3,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service as ChromeService
+from src.utils.logs_config import set_logs_configuration
+import logging
 import platform
 import random
 import re
@@ -19,6 +21,8 @@ class ScraperSelenium():
         self.attemps = 5
 
     def find_dane_elements(self,cufe:str):
+
+        set_logs_configuration()
 
         count = 0
 
@@ -72,7 +76,9 @@ class ScraperSelenium():
 
                 if count >= self.attemps:
 
-                    return None
+                    logging.warn("the scrapper is not able to pass the first page. Incorrect cufe or impossible to bit the recapcha")
+  
+                    return None, None, None, None, None, None
                 
                 count = 1 + count
 
@@ -98,9 +104,11 @@ class ScraperSelenium():
 
             return link, emisor_nit, emisor_name, receptor_nit, receptor_name, events
         
-        except Exception:
+        except Exception as e:
+
+            logging.error(f"unexpect error {e}")
+            raise(Exception)
             
-            return None
 
     def _look_for_events(self, table:list):
 
