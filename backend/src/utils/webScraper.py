@@ -4,6 +4,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service as ChromeService
 from src.utils.logs_config import set_logs_configuration
+from selenium.webdriver.common.action_chains import ActionChains
 import logging
 import platform
 import random
@@ -63,8 +64,9 @@ class ScraperSelenium():
             # Enter a value in the input text field
             input_text_fname.send_keys(cufe)
 
+            actions = ActionChains(driver)
             while driver.current_url == self.webpage_url:
-
+                actions.move_by_offset(random.randint(1, 10), random.randint(1, 10)).perform()
                 button = driver.find_element(By.CLASS_NAME, 'btn.btn-primary.search-document.margin-top-40')
                 
                 
@@ -76,7 +78,7 @@ class ScraperSelenium():
 
                 if count >= self.attemps:
 
-                    logging.warn("the scrapper is not able to pass the first page. Incorrect cufe or impossible to bit the recapcha")
+                    logging.warn("the scrapper is not able to pass the first page. Incorrect cufe or impossible to bit the reCAPTCHA")
   
                     return None, None, None, None, None, None
                 
