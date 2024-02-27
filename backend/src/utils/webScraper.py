@@ -19,7 +19,7 @@ class ScraperSelenium():
         self.webpage_url = webpage_url
         self.pattern_nit = r'[^0-9]'
         self.date_pattern = r"\b(19\d\d|20\d\d)[-/](0[1-9]|1[0-2])[-/](0[1-9]|[12]\d|3[01])\b"
-        self.attemps = 5
+        self.attempts = 5
 
     def find_dane_elements(self,cufe:str):
 
@@ -76,7 +76,7 @@ class ScraperSelenium():
 
                 driver.implicitly_wait(3)
 
-                if count >= self.attemps:
+                if count >= self.attempts:
 
                     logging.warn("the scrapper is not able to pass the first page. Incorrect cufe or impossible to bit the reCAPTCHA")
   
