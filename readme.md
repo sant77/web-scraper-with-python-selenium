@@ -26,7 +26,7 @@ Para poder desplegar el servicio se debe ir a la carpeta de `backend` e insetar 
     docker build -t flask-dane-scraper:v1.0.0 .
 ```
 ## Lanzado contenedor 🐳
-Para iniciar el docker compose se debe ingrasar a la carpeta `docker_compose` y escribir el siguiente comando:
+Para iniciar el docker compose se debe ingresar a la carpeta `docker_compose` y escribir el siguiente comando:
 
 ```bash
     docker-compose -f docker-compose-local.yml -p "my-scraper" up -d
