@@ -5,40 +5,42 @@
 
 # DIAN scraper API  ✒️
 
-Esta API tiene como objetivo poner el practica los conocimientos en python, realizando un raspado web a la aplicación de la DIAN para obtener facturas electrónicas por medios del código cufe.
+This API is designed to put Python knowledge into practice by performing web scraping on the DIAN (Colombian Tax Authority) application to obtain electronic invoices using the CUFE code.go cufe.
 
 
-# Estructura del proyecto 📁
-El proyecto se compone en las siguientes carpetas:
+# Project Structure 📁
+The project is organized into the following folders:
 
-- `backend`: Contiene el webscraper y el archivo docker para crear la imagen.
-
-
-- `docker_compose`:  Contiene el docker-compose para lanzar el servicio.
+- `backend`: Contains the web scraper and the Dockerfile for building the image.
 
 
-# Iniciando la API en docker 🐋
+- `docker_compose`:  Contains the docker-compose file to launch the service.
 
-## Creando imagen
-Para poder desplegar el servicio se debe ir a la carpeta de `backend` e insetar el siguiente comando con el fin de crear la imagen:
 
+# Running the API with Docker 🐋
+
+## Creating the image
+To deploy the service, navigate to the backend folder and run the following command to build the image:
 ```bash
     docker build -t flask-dane-scraper:v1.0.0 .
 ```
-## Lanzado contenedor 🐳
-Para iniciar el docker compose se debe ingresar a la carpeta `docker_compose` y escribir el siguiente comando:
+## Launching the container 🐳
+
+To start the docker-compose service, go to the docker_compose folder and run the following command
 
 ```bash
     docker-compose -f docker-compose-local.yml -p "my-scraper" up -d
 ```
 
-# Posibles mejoras📝
+# Possible Improvements📝
 
-- Para optimizar en velocidad se podría probar no iniciar un dirver de google por cada Cufe, sin embargo para evitar posibles errores y perder el progreso de cada scraper mejor se optó por otra aproximación
+-To improve speed, you could avoid starting a new Google Chrome driver for each CUFE. However, to prevent potential errors and losing scraper progress, a different approach was chosen.
 
-- Se necesita un método mejor para vencer el recaptcha. Por ahora se hace a fuerza bruta, sin embargo para volumenes de datos grandes esto no es viable.
 
-# Links de interés 🔗
-- [Documentanción de Selenium](https://www.selenium.dev/documentation/)
+# Useful Links🔗
+- [Selenium Documentation](https://www.selenium.dev/documentation/)
 
-- [Foro con la solución para instalar chrome en docker](https://gist.github.com/varyonic/dea40abcf3dd891d204ef235c6e8dd79)
+- [Forum post with solution for installing Chrome in Docker](https://gist.github.com/varyonic/dea40abcf3dd891d204ef235c6e8dd79)
+
+- [2Captcha – Automated reCAPTCHA Solver](https://2captcha.com/)
+
