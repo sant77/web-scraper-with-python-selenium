@@ -3,8 +3,9 @@ version: "3.8"
 services:
 
   scraper:
+    build: ../backend
     image: flask-dane-scraper:v1.0.0
-    
+ 
     restart: always
 
     ports:
@@ -16,6 +17,7 @@ services:
       - port_mongo=27017
       - user_mongo=usuario_admin
       - password_mongo=contraseña_admin
+      - API_KEY_2CAPTCHA=${API_KEY_2CAPTCHA}  
     
     networks:
       - net-dane

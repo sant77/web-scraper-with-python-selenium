@@ -8,6 +8,8 @@ import json
 import os 
 import jsonschema
 import logging
+from dotenv import load_dotenv
+import os
 
 set_logs_configuration()
 
@@ -32,10 +34,16 @@ def get_information_from_dane():
             list_of_cufes = get_json_post["cufes"]
 
             response ={}
-
+            load_dotenv()
+            
+            API_KEY_2CAPTCHA = os.environ.get("API_KEY_2CAPTCHA")
+            
             for cufe in list_of_cufes:
-
-                  scraper = ScraperSelenium("https://catalogo-vpfe.dian.gov.co/User/SearchDocument")
+                  
+                  scraper = scraper = ScraperSelenium(
+                                          "https://catalogo-vpfe.dian.gov.co/User/SearchDocument",
+                                          two_captcha_api_key=API_KEY_2CAPTCHA
+                                                )
 
                   link, emisor_nit, emisor_name, receptor_nit, receptor_name, events = scraper.find_dane_elements(cufe)
 
