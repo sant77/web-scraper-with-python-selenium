@@ -1,3 +1,15 @@
+from rich.console import Console
+from rich.table import Table
+from rich.panel import Panel
+from rich.progress import Progress
+from rich.style import Style
+from rich.box import ROUNDED
+from typing import List, Dict, Optional
+
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
@@ -5,6 +17,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+
+from datetime import datetime
 from src.utils.logs_config import set_logs_configuration
 from selenium.webdriver.common.action_chains import ActionChains
 import logging
@@ -70,8 +84,7 @@ class ScraperSelenium():
 
     def find_dane_elements(self, cufe:str):
         set_logs_configuration()
-        count = 0
-
+       
         if platform.system() == "Linux":
             chrome_options = Options()
             chrome_options.add_argument("--headless")
@@ -191,6 +204,155 @@ class ScraperSelenium():
         
     def _join_name(self, name:list):
         return " ".join(name)
+    
+    def export_to_excel(self, data: List[Dict], filename: str = "dian_results.xlsx") -> str:
+        """
+        Exporta los datos a un archivo Excel con formato profesional
+        
+        Args:
+            data: Lista de diccionarios con los datos a exportar
+            filename: Nombre del archivo de salida
+            
+        Returns:
+            Ruta completa del archivo generado
+        """
+        # Crear el libro de trabajo y la hoja
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Resultados DIAN"
+        
+        # Estilos
+        header_font = Font(bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="4F81BD", end_color="4F81BD", fill_type="solid")
+        header_alignment = Alignment(horizontal="center", vertical="center")
+        thin_border = Border(left=Side(style='thin'), 
+                            right=Side(style='thin'), 
+                            top=Side(style='thin'), 
+                            bottom=Side(style='thin'))
+        
+        # Encabezados
+        headers = [
+            "N°", "Emisor NIT", "Emisor Nombre", 
+            "Receptor NIT", "Receptor Nombre", 
+            "Enlace PDF", "N° Evento", "Tipo de Evento"
+        ]
+        
+        # Escribir encabezados
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = header_alignment
+            cell.border = thin_border
+        
+        # Escribir datos
+        row_num = 2
+        for idx, item in enumerate(data, start=1):
+            # Datos principales
+            main_data = [
+                idx,
+                item.get("emisor_nit", "N/A"),
+                item.get("emisor_name", "N/A"),
+                item.get("receptor_nit", "N/A"),
+                item.get("receptor_name", "N/A"),
+                item.get("link", "N/A")
+            ]
+            
+            # Escribir fila principal
+            for col_num, value in enumerate(main_data, 1):
+                cell = ws.cell(row=row_num, column=col_num, value=value)
+                cell.border = thin_border
+            
+            # Escribir eventos si existen
+            if item.get("events"):
+                for event in item["events"]:
+                    ws.cell(row=row_num, column=7, value=event.get("eventNumber", "N/A")).border = thin_border
+                    ws.cell(row=row_num, column=8, value=event.get("eventName", "N/A")).border = thin_border
+                    row_num += 1
+            else:
+                ws.cell(row=row_num, column=7, value="Sin eventos").border = thin_border
+                ws.cell(row=row_num, column=8, value="N/A").border = thin_border
+                row_num += 1
+        
+        # Ajustar el ancho de las columnas
+        for col in ws.columns:
+            max_length = 0
+            column = col[0].column_letter  # Get the column name
+            
+            for cell in col:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            
+            adjusted_width = (max_length + 2) * 1.2
+            ws.column_dimensions[column].width = adjusted_width
+        
+        # Congelar paneles (filas de encabezado)
+        ws.freeze_panes = "A2"
+        
+        # Añadir filtros
+        ws.auto_filter.ref = ws.dimensions
+        
+        # Generar nombre de archivo con timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        final_filename = f"dian_results_{timestamp}.xlsx"
+        
+        # Guardar el archivo
+        wb.save(final_filename)
+        
+        return os.path.abspath(final_filename)
+    
+    def display_results(self, data: List[Dict]) -> None:
+        """Muestra los resultados en una tabla formateada con Rich"""
+        console = Console()
+        
+        # Estilos personalizados
+        success_style = Style(color="green", bold=True)
+        warning_style = Style(color="yellow", bold=True)
+        error_style = Style(color="red", bold=True)
+        info_style = Style(color="blue", bold=True)
+        
+        console.print(Panel.fit("Resultados del Scraping DIAN", 
+                              style=info_style, 
+                              border_style=success_style))
+        
+        for idx, result in enumerate(data, start=1):
+            # Panel para cada resultado
+            console.print(Panel.fit(f"Resultado #{idx} - CUFE procesado", 
+                           style=info_style))
+            
+            # Tabla de información principal
+            main_table = Table(show_header=True, header_style="bold magenta", 
+                             box=ROUNDED, expand=True)
+            main_table.add_column("Campo", style="cyan", width=20)
+            main_table.add_column("Valor", style="white")
+            
+            main_table.add_row("Emisor NIT", result.get("emisor_nit", "N/A"))
+            main_table.add_row("Emisor Nombre", result.get("emisor_name", "N/A"))
+            main_table.add_row("Receptor NIT", result.get("receptor_nit", "N/A"))
+            main_table.add_row("Receptor Nombre", result.get("receptor_name", "N/A"))
+            main_table.add_row("Enlace PDF", result.get("link", "N/A"))
+            
+            console.print(main_table)
+            
+            # Tabla de eventos si existen
+            if result.get("events"):
+                events_table = Table(show_header=True, header_style="bold yellow", 
+                                   box=ROUNDED, title="Eventos")
+                events_table.add_column("Número", style="cyan")
+                events_table.add_column("Tipo de Evento", style="white")
+                
+                for event in result["events"]:
+                    events_table.add_row(event.get("eventNumber", "N/A"), 
+                                       event.get("eventName", "N/A"))
+                
+                console.print(events_table)
+            else:
+                console.print("[yellow]No se encontraron eventos[/yellow]")
+            
+            console.print()  # Espacio entre resultados
 
 if __name__ == "__main__":
     # Ejemplo de uso con 2Captcha
@@ -201,5 +363,52 @@ if __name__ == "__main__":
         "https://catalogo-vpfe.dian.gov.co/User/SearchDocument",
         two_captcha_api_key=API_KEY_2CAPTCHA
     )
+
+    cufes = [
+        "2320c5d9dcb19b24b9e8baa0e033579a1b1329bb1c846850838c8b6daedb90d36f528a727a79041869b68b7c2f2352c0",
+        "1f28b0cafdafdfc493c2d2abff1168fe99f56395f8c77f7ae492c31972c404ddc54339e51cad28e7e77277a44ca3664e",
+        "86da9212194f131522f9f450e623ae11086fdc5f782f58706229a71663af58cd11d231de7ad2b8cb13f2d12a263a5c9c",
+        "2320c5d9dcb19b24b9e8baa0e033579a1b1329bb1c846850838c8b6daedb90d36f528a727a79041869b68b7c2f2352c0",
+        "fa7f59b23c5d77ce97808a2b5628b81da05b86eb1aa713d3bddbecb559070c6a45cbcba215161f755826805c353bec8c",
+        "728c9ac2c2cfeb509825f76adc4fce9964142aac8dcfcbda66785013f8d0d93e8d6603857bd49885c296dce70856b227",
+        "71546c618e7464e422088512e32c50f3ff96e80777ca273f98fd1ff1b5c726da1f0c4f9246b2807b69fe4ec60d92336f"
+    ]
+
+    data = []
+
+    console = Console()
+    with Progress() as progress:
+        task = progress.add_task("[cyan]Procesando CUFE...", total=len(cufes))
+        
+        for cufe in cufes:
+            progress.update(task, advance=1, description=f"[cyan]Procesando {cufe[:10]}...")
+            
+            try:
+                link, emisor_nit, emisor_name, receptor_nit, receptor_name, events = scraper.find_dane_elements(cufe)
+                
+                data.append({
+                    "link": link, 
+                    "emisor_nit": emisor_nit, 
+                    "emisor_name": emisor_name, 
+                    "receptor_nit": receptor_nit, 
+                    "receptor_name": receptor_name, 
+                    "events": events
+                })
+                
+            except Exception as e:
+                console.print(f"[red]Error procesando CUFE {cufe[:10]}...: {str(e)}[/red]")
+                data.append({
+                    "link": None, 
+                    "emisor_nit": None, 
+                    "emisor_name": None, 
+                    "receptor_nit": None, 
+                    "receptor_name": None, 
+                    "events": None
+                })
     
-    print(scraper.find_dane_elements("1f28b0cafdafdfc493c2d2abff1168fe99f56395f8c77f7ae492c31972c404ddc54339e51cad28e7e77277a44ca3664e"))
+    # Mostrar resultados con formato mejorado
+    scraper.display_results(data)
+
+    # Exportar a Excel
+    excel_path = scraper.export_to_excel(data)
+    console.print(f"\n[bold green]✓ Datos exportados a Excel: [underline]{excel_path}[/underline][/bold green]")
